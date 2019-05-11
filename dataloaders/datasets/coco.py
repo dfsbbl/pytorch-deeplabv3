@@ -15,7 +15,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 class COCOSegmentation(Dataset):
     NUM_CLASSES = 21
     CAT_LIST = [0, 5, 2, 16, 9, 44, 6, 3, 17, 62, 21, 67, 18, 19, 4,
-        1, 64, 20, 63, 7, 72]
+                1, 64, 20, 63, 7, 72]
 
     def __init__(self,
                  args,
@@ -23,9 +23,12 @@ class COCOSegmentation(Dataset):
                  split='train',
                  year='2017'):
         super().__init__()
-        ann_file = os.path.join(base_dir, 'annotations/instances_{}{}.json'.format(split, year))
-        ids_file = os.path.join(base_dir, 'annotations/{}_ids_{}.pth'.format(split, year))
-        self.img_dir = os.path.join(base_dir, 'images/{}{}'.format(split, year))
+        ann_file = os.path.join(
+            base_dir, 'annotations/instances_{}{}.json'.format(split, year))
+        ids_file = os.path.join(
+            base_dir, 'annotations/{}_ids_{}.pth'.format(split, year))
+        self.img_dir = os.path.join(
+            base_dir, 'images/{}{}'.format(split, year))
         self.split = split
         self.coco = COCO(ann_file)
         self.coco_mask = mask
@@ -58,7 +61,7 @@ class COCOSegmentation(Dataset):
         return _img, _target
 
     def _preprocess(self, ids, ids_file):
-        print("Preprocessing mask, this will take a while. " + \
+        print("Preprocessing mask, this will take a while. " +
               "But don't worry, it only run once for each split.")
         tbar = trange(len(ids))
         new_ids = []
@@ -71,7 +74,7 @@ class COCOSegmentation(Dataset):
             # more than 1k pixels
             if (mask > 0).sum() > 1000:
                 new_ids.append(img_id)
-            tbar.set_description('Doing: {}/{}, got {} qualified images'. \
+            tbar.set_description('Doing: {}/{}, got {} qualified images'.
                                  format(i, len(ids), len(new_ids)))
         print('Found number of qualified images: ', len(new_ids))
         torch.save(new_ids, ids_file)
@@ -91,15 +94,21 @@ class COCOSegmentation(Dataset):
             if len(m.shape) < 3:
                 mask[:, :] += (mask == 0) * (m * c)
             else:
-                mask[:, :] += (mask == 0) * (((np.sum(m, axis=2)) > 0) * c).astype(np.uint8)
+                mask[:, :] += (mask == 0) * \
+                    (((np.sum(m, axis=2)) > 0) * c).astype(np.uint8)
         return mask
 
     def transform_tr(self, sample):
         composed_transforms = transforms.Compose([
             tr.RandomHorizontalFlip(),
-            tr.RandomScaleCrop(base_size=self.args.base_size, crop_size=self.args.crop_size),
+            tr.RandomScaleCrop(
+                base_size=self.args.base_size,
+                crop_size=self.args.crop_size),
             tr.RandomGaussianBlur(),
-            tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            tr.Normalize(
+                mean=(
+                    0.485, 0.456, 0.406), std=(
+                    0.229, 0.224, 0.225)),
             tr.ToTensor()])
 
         return composed_transforms(sample)
@@ -108,15 +117,16 @@ class COCOSegmentation(Dataset):
 
         composed_transforms = transforms.Compose([
             tr.FixScaleCrop(crop_size=self.args.crop_size),
-            tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            tr.Normalize(
+                mean=(
+                    0.485, 0.456, 0.406), std=(
+                    0.229, 0.224, 0.225)),
             tr.ToTensor()])
 
         return composed_transforms(sample)
 
-
     def __len__(self):
         return len(self.ids)
-
 
 
 if __name__ == "__main__":
@@ -134,7 +144,11 @@ if __name__ == "__main__":
 
     coco_val = COCOSegmentation(args, split='val', year='2017')
 
-    dataloader = DataLoader(coco_val, batch_size=4, shuffle=True, num_workers=0)
+    dataloader = DataLoader(
+        coco_val,
+        batch_size=4,
+        shuffle=True,
+        num_workers=0)
 
     for ii, sample in enumerate(dataloader):
         for jj in range(sample["image"].size()[0]):

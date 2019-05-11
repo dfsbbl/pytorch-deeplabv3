@@ -3,6 +3,7 @@ import torch.utils.data as data
 
 class CombineDBs(data.Dataset):
     NUM_CLASSES = 21
+
     def __init__(self, dataloaders, excluded=None):
         self.dataloaders = dataloaders
         self.excluded = excluded
@@ -28,7 +29,8 @@ class CombineDBs(data.Dataset):
         num_images = 0
         for ii, dl in enumerate(dataloaders):
             for jj, curr_im_id in enumerate(dl.im_ids):
-                if (curr_im_id in self.im_ids) and (curr_im_id not in new_im_ids):
+                if (curr_im_id in self.im_ids) and (
+                        curr_im_id not in new_im_ids):
                     num_images += 1
                     new_im_ids.append(curr_im_id)
                     self.cat_list.append({'db_ii': ii, 'cat_ii': jj})
@@ -53,7 +55,8 @@ class CombineDBs(data.Dataset):
     def __str__(self):
         include_db = [str(db) for db in self.dataloaders]
         exclude_db = [str(db) for db in self.excluded]
-        return 'Included datasets:'+str(include_db)+'\n'+'Excluded datasets:'+str(exclude_db)
+        return 'Included datasets:' + \
+            str(include_db) + '\n' + 'Excluded datasets:' + str(exclude_db)
 
 
 if __name__ == "__main__":
@@ -75,7 +78,8 @@ if __name__ == "__main__":
     pascal_voc_train = pascal.VOCSegmentation(args, split='train')
 
     dataset = CombineDBs([pascal_voc_train, sbd], excluded=[pascal_voc_val])
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True, num_workers=0)
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=2, shuffle=True, num_workers=0)
 
     for ii, sample in enumerate(dataloader):
         for jj in range(sample["image"].size()[0]):

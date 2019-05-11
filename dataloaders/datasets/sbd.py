@@ -10,6 +10,7 @@ from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
 
+
 class SBDSegmentation(data.Dataset):
     NUM_CLASSES = 21
 
@@ -29,7 +30,6 @@ class SBDSegmentation(data.Dataset):
         self._image_dir = os.path.join(self._dataset_dir, 'img')
         self._cat_dir = os.path.join(self._dataset_dir, 'cls')
 
-
         if isinstance(split, str):
             self.split = [split]
         else:
@@ -48,7 +48,7 @@ class SBDSegmentation(data.Dataset):
 
             for line in lines:
                 _image = os.path.join(self._image_dir, line + ".jpg")
-                _categ= os.path.join(self._cat_dir, line + ".mat")
+                _categ = os.path.join(self._cat_dir, line + ".mat")
                 assert os.path.isfile(_image)
                 assert os.path.isfile(_categ)
                 self.im_ids.append(line)
@@ -59,7 +59,6 @@ class SBDSegmentation(data.Dataset):
 
         # Display stats
         print('Number of images: {:d}'.format(len(self.images)))
-
 
     def __getitem__(self, index):
         _img, _target = self._make_img_gt_point_pair(index)
@@ -72,20 +71,25 @@ class SBDSegmentation(data.Dataset):
 
     def _make_img_gt_point_pair(self, index):
         _img = Image.open(self.images[index]).convert('RGB')
-        _target = Image.fromarray(scipy.io.loadmat(self.categories[index])["GTcls"][0]['Segmentation'][0])
+        _target = Image.fromarray(scipy.io.loadmat(self.categories[index])[
+                                  "GTcls"][0]['Segmentation'][0])
 
         return _img, _target
 
     def transform(self, sample):
         composed_transforms = transforms.Compose([
             tr.RandomHorizontalFlip(),
-            tr.RandomScaleCrop(base_size=self.args.base_size, crop_size=self.args.crop_size),
+            tr.RandomScaleCrop(
+                base_size=self.args.base_size,
+                crop_size=self.args.crop_size),
             tr.RandomGaussianBlur(),
-            tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            tr.Normalize(
+                mean=(
+                    0.485, 0.456, 0.406), std=(
+                    0.229, 0.224, 0.225)),
             tr.ToTensor()])
 
         return composed_transforms(sample)
-
 
     def __str__(self):
         return 'SBDSegmentation(split=' + str(self.split) + ')'
@@ -103,7 +107,11 @@ if __name__ == '__main__':
     args.crop_size = 513
 
     sbd_train = SBDSegmentation(args, split='train')
-    dataloader = DataLoader(sbd_train, batch_size=2, shuffle=True, num_workers=2)
+    dataloader = DataLoader(
+        sbd_train,
+        batch_size=2,
+        shuffle=True,
+        num_workers=2)
 
     for ii, sample in enumerate(dataloader):
         for jj in range(sample["image"].size()[0]):
